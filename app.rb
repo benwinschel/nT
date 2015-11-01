@@ -34,15 +34,25 @@ get '/user/register' do
 end
 
 post '/user/register' do
+
     name = params[:name]
     email = params[:email]
     password = params[:password]
-    if (User.find_by(email: email) != nil) then
-        redirect to("/user/register")
-    else
-        User.create(name: name, email: email, password: password, avatar: Faker::Avatar.image)
+      user = User.new(JSON.parse(request.body.read))
+      if user.valid?
+        if (User.find_by(email: user[:email]) != nil) then
+          return status 500
+        else
+          user.save
+          return status 201
+        end
+      else
+        return status 400
+      end
+        #User.create(name: name, email: email, password: password, avatar: Faker::Avatar.image)
+
         redirect to("/")
-    end
+
 end
 
 #The home page of user, displaying Top 50 tweets of followed users and himself
@@ -64,7 +74,14 @@ get '/user/:id' do
     @tweets = Tweet.where(sender_id: id).order(created: :desc).limit(50)
     @tweets.to_a.map!{|tweet| tweet.attributes }
                 .each{|tweet| tweet["user"] = @user.attributes}
-    erb :user
+    #erb :user
+    #atts = JSON.parse(request.body.read)
+    user = User.find_by_name(params[:id])
+    if user
+      user.to_json
+    else
+      error 500
+    end
 end
 
 #display the login page, after logging in redirect to /user/:id
@@ -72,14 +89,14 @@ get '/login' do
 end
 
 post '/user/:id/tweet' do
-    sender_id = params['id'].to_i
-    if (session[:user_id] != nil && session[:user_id] == sender_id) then
-        tweet = params[:tweet]
-        Tweet.create(sender_id: sender_id, content: tweet, created: DateTime.now)
+    user = User.find_by_name(params[:id])
+    if user
+      Tweet.create(JSON.parse(request.body.read))
+        return status 201
         redirect to("/user/#{sender_id}")
-    else
-        return status 403
-    end
+      else
+        return status 500
+      end
 end
 
 post '/login' do
@@ -134,7 +151,7 @@ end
 #randomly select n users to follow user “testuser”
 get '/test/follow/:n' do
     n = params['n'].to_i
-    test_user = User.find_by(name: 'test')
+    test_user = User.first
     User.where("name != 'test'").order("RANDOM()").limit(n).each do |user|
         Relation.create(followee_id: test_user[:id], follower_id: user[:id])
     end

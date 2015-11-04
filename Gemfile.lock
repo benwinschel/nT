@@ -1,3 +1,12 @@
+GIT
+  remote: git://github.com/brandonweiss/rack-minitest.git
+  revision: ff8669c284e05c3cba8d14b867165c103283a167
+  specs:
+    rack-minitest (0.0.10)
+      json
+      minitest (~> 5.0)
+      rack-test
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -25,6 +34,8 @@ GEM
     rack (1.6.4)
     rack-protection (1.5.3)
       rack
+    rack-test (0.6.3)
+      rack (>= 1.0)
     rake (10.4.2)
     sinatra (1.4.6)
       rack (~> 1.4)
@@ -47,6 +58,7 @@ DEPENDENCIES
   faker
   json
   pg
+  rack-minitest!
   rake
   sinatra
   sinatra-activerecord
